@@ -2,17 +2,45 @@
 
 电脑端后台程序会采集 Windows 的 CPU / GPU / RAM 使用率，通过 USB 串口发送给 ESP32-C3，由 OLED 显示硬件状态。
 
-后台程序还会尝试通过 LibreHardwareMonitor 读取 CPU / GPU 温度，并写入日志；温度目前不发送到 OLED。
+后台程序还会尝试通过 LibreHardwareMonitor 读取 CPU / GPU 温度，并发送到第二、第三块 OLED。
 
 ## 串口协议
 
 电脑端每秒发送一行文本，波特率 `115200`：
 
 ```text
-CPU=35;GPU=42;RAM=68
+CPU=35;GPU=42;RAM=68;CPU_TEMP=56;GPU_TEMP=61
 ```
 
+温度不可用时会发送 `NA`，例如 `CPU_TEMP=NA;GPU_TEMP=NA`。
+
 ESP32 固件位于 `hardwareMonitor/hardwareMonitor.ino`。
+
+## OLED 接线
+
+固件使用 PCA9848A I2C 多路复用器，默认地址 `0x70`：
+
+- ESP32-C3 `GPIO4` -> PCA9848A `SDA`
+- ESP32-C3 `GPIO5` -> PCA9848A `SCL`
+- OLED1 接 PCA9848A 通道 0，显示 CPU / GPU / RAM 占用率
+- OLED2 接 PCA9848A 通道 1，显示 CPU 温度
+- OLED3 接 PCA9848A 通道 2，显示 GPU 温度
+
+三块 OLED 的 I2C 地址都使用 `0x3C`。
+
+命令行编译固件：
+
+```powershell
+.\scripts\build-firmware.ps1
+```
+
+烧录固件，按实际串口替换 `COM4`：
+
+```powershell
+.\scripts\flash-firmware.ps1 -Port COM4
+```
+
+如果 PCA9848A 模块改过地址脚，请同步修改 `hardwareMonitor/Config.h` 里的 `PCA9848A_ADDR`。
 
 ## 构建 Windows 程序
 

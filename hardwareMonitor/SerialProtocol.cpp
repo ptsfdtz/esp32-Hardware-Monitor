@@ -5,8 +5,10 @@
 
 static String inputLine = "";
 
-static void parseData(String data);
-static int getValue(String data, String key, int oldValue);
+static void parseData(const String &data);
+static bool getField(const String &data, const String &key, String &value);
+static int getPercentValue(const String &data, const String &key, int oldValue);
+static int getTemperatureValue(const String &data, const String &key, int oldValue);
 
 void readSerialData()
 {
@@ -32,26 +34,25 @@ void readSerialData()
   }
 }
 
-// 接收格式：CPU=45;GPU=52;RAM=68
-static void parseData(String data)
+// 接收格式：CPU=45;GPU=52;RAM=68;CPU_TEMP=56;GPU_TEMP=61
+static void parseData(const String &data)
 {
-  metrics[0].targetValue = getValue(data, "CPU", metrics[0].targetValue);
-  metrics[1].targetValue = getValue(data, "GPU", metrics[1].targetValue);
-  metrics[2].targetValue = getValue(data, "RAM", metrics[2].targetValue);
+  metrics[0].targetValue = getPercentValue(data, "CPU", metrics[0].targetValue);
+  metrics[1].targetValue = getPercentValue(data, "GPU", metrics[1].targetValue);
+  metrics[2].targetValue = getPercentValue(data, "RAM", metrics[2].targetValue);
 
-  metrics[0].targetValue = constrain(metrics[0].targetValue, 0, 100);
-  metrics[1].targetValue = constrain(metrics[1].targetValue, 0, 100);
-  metrics[2].targetValue = constrain(metrics[2].targetValue, 0, 100);
+  temperatures[0].value = getTemperatureValue(data, "CPU_TEMP", temperatures[0].value);
+  temperatures[1].value = getTemperatureValue(data, "GPU_TEMP", temperatures[1].value);
 }
 
-static int getValue(String data, String key, int oldValue)
+static bool getField(const String &data, const String &key, String &value)
 {
   String target = key + "=";
   int startIndex = data.indexOf(target);
 
   if (startIndex == -1)
   {
-    return oldValue;
+    return false;
   }
 
   startIndex += target.length();
@@ -62,6 +63,34 @@ static int getValue(String data, String key, int oldValue)
     endIndex = data.length();
   }
 
-  String valueString = data.substring(startIndex, endIndex);
-  return valueString.toInt();
+  value = data.substring(startIndex, endIndex);
+  value.trim();
+  return true;
+}
+
+static int getPercentValue(const String &data, const String &key, int oldValue)
+{
+  String valueString;
+  if (!getField(data, key, valueString))
+  {
+    return oldValue;
+  }
+
+  return constrain(valueString.toInt(), 0, 100);
+}
+
+static int getTemperatureValue(const String &data, const String &key, int oldValue)
+{
+  String valueString;
+  if (!getField(data, key, valueString))
+  {
+    return oldValue;
+  }
+
+  if (valueString.equalsIgnoreCase("NA") || valueString.length() == 0)
+  {
+    return UNKNOWN_TEMPERATURE;
+  }
+
+  return constrain(valueString.toInt(), 0, 199);
 }

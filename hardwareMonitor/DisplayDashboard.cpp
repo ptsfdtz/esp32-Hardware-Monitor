@@ -9,12 +9,25 @@
 #include <math.h>
 
 static Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+static unsigned long lastTemperatureFrame = 0;
 
+static bool selectDisplayChannel(int channel);
+static bool beginDisplayChannel(int channel);
+static void drawUsageScreen();
+static void drawTemperatureScreen(TemperatureMetric metric);
+static bool shouldDrawTemperatureScreens();
 static void drawMetricRow(int rowY, Metric metric);
 static void drawPremiumBar(int x, int y, int w, int h, float percent);
 static void drawSegmentText(int x, int y, const char *text);
 static void drawSegmentLetter(int x, int y, char c);
 static void drawValueBlock(int y, int value);
+static void drawTemperatureValue(int value);
+static void drawNoTemperatureValue();
+static void drawRoundedDigit(int x, int y, int num, int scale);
+static void drawRoundedLetterC(int x, int y, int scale);
+static void drawRoundedDegreeC(int x, int y, int scale);
+static void drawRoundedDash(int x, int y, int scale);
+static void drawRoundedSegment(int x, int y, int segment, int scale);
 static void drawSevenDigit(int x, int y, int num);
 static void segA(int x, int y);
 static void segB(int x, int y);
@@ -25,12 +38,85 @@ static void segF(int x, int y);
 static void segG(int x, int y);
 static void drawPercentIcon(int x, int y);
 
+static const bool DIGIT_SEGMENTS[10][7] = {
+    {1, 1, 1, 1, 1, 1, 0},
+    {0, 1, 1, 0, 0, 0, 0},
+    {1, 1, 0, 1, 1, 0, 1},
+    {1, 1, 1, 1, 0, 0, 1},
+    {0, 1, 1, 0, 0, 1, 1},
+    {1, 0, 1, 1, 0, 1, 1},
+    {1, 0, 1, 1, 1, 1, 1},
+    {1, 1, 1, 0, 0, 0, 0},
+    {1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 0, 1, 1}};
+
 bool beginDisplay()
 {
   Wire.begin(OLED_SDA, OLED_SCL);
   Wire.setClock(400000);
 
-  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR))
+  if (!beginDisplayChannel(OLED_USAGE_CHANNEL))
+  {
+    return false;
+  }
+
+  if (!beginDisplayChannel(OLED_CPU_TEMP_CHANNEL))
+  {
+    return false;
+  }
+
+  if (!beginDisplayChannel(OLED_GPU_TEMP_CHANNEL))
+  {
+    return false;
+  }
+
+  return true;
+}
+
+void drawDashboard()
+{
+  if (selectDisplayChannel(OLED_USAGE_CHANNEL))
+  {
+    drawUsageScreen();
+    display.display();
+  }
+
+  if (shouldDrawTemperatureScreens())
+  {
+    if (selectDisplayChannel(OLED_CPU_TEMP_CHANNEL))
+    {
+      drawTemperatureScreen(temperatures[0]);
+      display.display();
+    }
+
+    if (selectDisplayChannel(OLED_GPU_TEMP_CHANNEL))
+    {
+      drawTemperatureScreen(temperatures[1]);
+      display.display();
+    }
+  }
+}
+
+static bool selectDisplayChannel(int channel)
+{
+  if (channel < 0 || channel > 7)
+  {
+    return false;
+  }
+
+  Wire.beginTransmission(PCA9848A_ADDR);
+  Wire.write(1 << channel);
+  return Wire.endTransmission() == 0;
+}
+
+static bool beginDisplayChannel(int channel)
+{
+  if (!selectDisplayChannel(channel))
+  {
+    return false;
+  }
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR, false, false))
   {
     return false;
   }
@@ -40,15 +126,40 @@ bool beginDisplay()
   return true;
 }
 
-void drawDashboard()
+static void drawUsageScreen()
 {
   display.clearDisplay();
-
   drawMetricRow(2, metrics[0]);
   drawMetricRow(23, metrics[1]);
   drawMetricRow(44, metrics[2]);
+}
 
-  display.display();
+static void drawTemperatureScreen(TemperatureMetric metric)
+{
+  display.clearDisplay();
+  display.setTextColor(SSD1306_WHITE);
+
+  if (metric.value == UNKNOWN_TEMPERATURE)
+  {
+    drawNoTemperatureValue();
+  }
+  else
+  {
+    drawTemperatureValue(metric.value);
+  }
+}
+
+static bool shouldDrawTemperatureScreens()
+{
+  unsigned long now = millis();
+
+  if (lastTemperatureFrame == 0 || now - lastTemperatureFrame >= TEMPERATURE_FRAME_INTERVAL)
+  {
+    lastTemperatureFrame = now;
+    return true;
+  }
+
+  return false;
 }
 
 static void drawMetricRow(int rowY, Metric metric)
@@ -248,35 +359,151 @@ static void drawValueBlock(int y, int value)
   drawPercentIcon(suffixX, y + 2);
 }
 
-static void drawSevenDigit(int x, int y, int num)
+static void drawTemperatureValue(int value)
 {
-  bool seg[10][7] = {
-      {1, 1, 1, 1, 1, 1, 0},
-      {0, 1, 1, 0, 0, 0, 0},
-      {1, 1, 0, 1, 1, 0, 1},
-      {1, 1, 1, 1, 0, 0, 1},
-      {0, 1, 1, 0, 0, 1, 1},
-      {1, 0, 1, 1, 0, 1, 1},
-      {1, 0, 1, 1, 1, 1, 1},
-      {1, 1, 1, 0, 0, 0, 0},
-      {1, 1, 1, 1, 1, 1, 1},
-      {1, 1, 1, 1, 0, 1, 1}};
+  value = constrain(value, 0, 199);
 
+  int digits[3];
+  int count = 0;
+
+  if (value >= 100)
+  {
+    digits[0] = value / 100;
+    digits[1] = (value / 10) % 10;
+    digits[2] = value % 10;
+    count = 3;
+  }
+  else if (value >= 10)
+  {
+    digits[0] = value / 10;
+    digits[1] = value % 10;
+    count = 2;
+  }
+  else
+  {
+    digits[0] = 0;
+    digits[1] = value;
+    count = 2;
+  }
+
+  const int scale = 3;
+  const int digitW = 7 * scale;
+  const int digitH = 14 * scale;
+  const int gap = 5;
+  const int unitGap = 7;
+  const int unitW = 10 * scale;
+  const int totalW = count * digitW + (count - 1) * gap + unitGap + unitW;
+  int x = (SCREEN_WIDTH - totalW) / 2;
+  int y = (SCREEN_HEIGHT - digitH) / 2;
+
+  if (x < 0)
+  {
+    x = 0;
+  }
+
+  for (int i = 0; i < count; i++)
+  {
+    drawRoundedDigit(x + i * (digitW + gap), y, digits[i], scale);
+  }
+
+  drawRoundedDegreeC(x + count * digitW + (count - 1) * gap + unitGap, y, scale);
+}
+
+static void drawNoTemperatureValue()
+{
+  const int scale = 3;
+  const int digitW = 7 * scale;
+  const int digitH = 14 * scale;
+  const int gap = 5;
+  int x = (SCREEN_WIDTH - digitW * 2 - gap) / 2;
+  int y = (SCREEN_HEIGHT - digitH) / 2;
+
+  drawRoundedDash(x, y, scale);
+  drawRoundedDash(x + digitW + gap, y, scale);
+}
+
+static void drawRoundedDigit(int x, int y, int num, int scale)
+{
   num = constrain(num, 0, 9);
 
-  if (seg[num][0])
+  for (int segment = 0; segment < 7; segment++)
+  {
+    if (DIGIT_SEGMENTS[num][segment])
+    {
+      drawRoundedSegment(x, y, segment, scale);
+    }
+  }
+}
+
+static void drawRoundedLetterC(int x, int y, int scale)
+{
+  drawRoundedSegment(x, y, 0, scale);
+  drawRoundedSegment(x, y, 3, scale);
+  drawRoundedSegment(x, y, 4, scale);
+  drawRoundedSegment(x, y, 5, scale);
+}
+
+static void drawRoundedDegreeC(int x, int y, int scale)
+{
+  int degreeRadius = scale;
+  display.drawCircle(x + degreeRadius, y + degreeRadius, degreeRadius, SSD1306_WHITE);
+  display.drawCircle(x + degreeRadius, y + degreeRadius, max(1, degreeRadius - 1), SSD1306_WHITE);
+  drawRoundedLetterC(x + 3 * scale, y, scale);
+}
+
+static void drawRoundedDash(int x, int y, int scale)
+{
+  drawRoundedSegment(x, y, 6, scale);
+}
+
+static void drawRoundedSegment(int x, int y, int segment, int scale)
+{
+  int thickness = 2 * scale;
+  int radius = scale;
+
+  switch (segment)
+  {
+  case 0:
+    display.fillRoundRect(x + scale, y, 5 * scale, thickness, radius, SSD1306_WHITE);
+    break;
+  case 1:
+    display.fillRoundRect(x + 5 * scale, y + scale, thickness, 5 * scale, radius, SSD1306_WHITE);
+    break;
+  case 2:
+    display.fillRoundRect(x + 5 * scale, y + 7 * scale, thickness, 5 * scale, radius, SSD1306_WHITE);
+    break;
+  case 3:
+    display.fillRoundRect(x + scale, y + 12 * scale, 5 * scale, thickness, radius, SSD1306_WHITE);
+    break;
+  case 4:
+    display.fillRoundRect(x, y + 7 * scale, thickness, 5 * scale, radius, SSD1306_WHITE);
+    break;
+  case 5:
+    display.fillRoundRect(x, y + scale, thickness, 5 * scale, radius, SSD1306_WHITE);
+    break;
+  case 6:
+    display.fillRoundRect(x + scale, y + 6 * scale, 5 * scale, thickness, radius, SSD1306_WHITE);
+    break;
+  }
+}
+
+static void drawSevenDigit(int x, int y, int num)
+{
+  num = constrain(num, 0, 9);
+
+  if (DIGIT_SEGMENTS[num][0])
     segA(x, y);
-  if (seg[num][1])
+  if (DIGIT_SEGMENTS[num][1])
     segB(x, y);
-  if (seg[num][2])
+  if (DIGIT_SEGMENTS[num][2])
     segC(x, y);
-  if (seg[num][3])
+  if (DIGIT_SEGMENTS[num][3])
     segD(x, y);
-  if (seg[num][4])
+  if (DIGIT_SEGMENTS[num][4])
     segE(x, y);
-  if (seg[num][5])
+  if (DIGIT_SEGMENTS[num][5])
     segF(x, y);
-  if (seg[num][6])
+  if (DIGIT_SEGMENTS[num][6])
     segG(x, y);
 }
 

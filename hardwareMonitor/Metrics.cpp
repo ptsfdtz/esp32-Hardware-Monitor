@@ -4,9 +4,13 @@
 #include <math.h>
 
 Metric metrics[3] = {
-    {"CPU", 0, 45, 100},
-    {"GPU", 0, 52, 100},
-    {"RAM", 0, 68, 100}};
+    {"CPU", 0, 0, 100},
+    {"GPU", 0, 0, 100},
+    {"RAM", 0, 0, 100}};
+
+TemperatureMetric temperatures[2] = {
+    {"CPU", UNKNOWN_TEMPERATURE},
+    {"GPU", UNKNOWN_TEMPERATURE}};
 
 void updateAnimation(float dt)
 {

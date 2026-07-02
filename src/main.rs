@@ -132,17 +132,20 @@ fn run_agent() -> Result<(), String> {
 
     loop {
         let metrics = collector.sample();
+        if let Some(reading) = temperature_probe.sample() {
+            log_line(&format!("temperature {reading}"));
+        }
+
+        let temperatures = temperature_probe.latest();
+        let cpu_temp = serial_temperature(temperatures.cpu);
+        let gpu_temp = serial_temperature(temperatures.gpu);
         let line = format!(
-            "CPU={};GPU={};RAM={}\n",
-            metrics.cpu, metrics.gpu, metrics.ram
+            "CPU={};GPU={};RAM={};CPU_TEMP={};GPU_TEMP={}\n",
+            metrics.cpu, metrics.gpu, metrics.ram, cpu_temp, gpu_temp
         );
 
         if let Err(err) = serial.send(&line) {
             log_line(&format!("serial send failed: {err}"));
-        }
-
-        if let Some(reading) = temperature_probe.sample() {
-            log_line(&format!("temperature {reading}"));
         }
 
         thread::sleep(SAMPLE_INTERVAL);
@@ -303,6 +306,13 @@ struct TemperatureProbe {
     exe_path: PathBuf,
     libre_dir: PathBuf,
     last_sample: Option<SystemTime>,
+    latest: TemperatureReading,
+}
+
+#[derive(Clone, Copy, Default)]
+struct TemperatureReading {
+    cpu: Option<u8>,
+    gpu: Option<u8>,
 }
 
 impl TemperatureProbe {
@@ -325,7 +335,12 @@ impl TemperatureProbe {
             exe_path,
             libre_dir,
             last_sample: None,
+            latest: TemperatureReading::default(),
         }
+    }
+
+    fn latest(&self) -> TemperatureReading {
+        self.latest
     }
 
     fn sample(&mut self) -> Option<String> {
@@ -339,10 +354,12 @@ impl TemperatureProbe {
         self.last_sample = Some(now);
 
         if !self.exe_path.exists() {
+            self.latest = TemperatureReading::default();
             return Some("probe_missing".to_string());
         }
 
         if !self.libre_dir.join("LibreHardwareMonitorLib.dll").exists() {
+            self.latest = TemperatureReading::default();
             return Some(format!("libre_missing path={}", self.libre_dir.display()));
         }
 
@@ -355,12 +372,15 @@ impl TemperatureProbe {
             Ok(output) if output.status.success() => {
                 let stdout = String::from_utf8_lossy(&output.stdout).trim().to_string();
                 if stdout.is_empty() {
+                    self.latest = TemperatureReading::default();
                     Some("empty_probe_output".to_string())
                 } else {
+                    self.latest = parse_temperature_reading(&stdout);
                     Some(stdout)
                 }
             }
             Ok(output) => {
+                self.latest = TemperatureReading::default();
                 let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
                 Some(format!(
                     "probe_failed code={:?} {}",
@@ -368,9 +388,45 @@ impl TemperatureProbe {
                     stderr
                 ))
             }
-            Err(err) => Some(format!("probe_launch_failed {err}")),
+            Err(err) => {
+                self.latest = TemperatureReading::default();
+                Some(format!("probe_launch_failed {err}"))
+            }
         }
     }
+}
+
+fn parse_temperature_reading(line: &str) -> TemperatureReading {
+    TemperatureReading {
+        cpu: parse_temperature_field(line, "CPU_TEMP"),
+        gpu: parse_temperature_field(line, "GPU_TEMP"),
+    }
+}
+
+fn parse_temperature_field(line: &str, key: &str) -> Option<u8> {
+    let prefix = format!("{key}=");
+    for part in line.split(';') {
+        if let Some(value) = part.trim().strip_prefix(&prefix) {
+            let value = value.trim();
+            if value.eq_ignore_ascii_case("NA") || value.is_empty() {
+                return None;
+            }
+
+            let Ok(parsed) = value.parse::<i32>() else {
+                return None;
+            };
+
+            return Some(parsed.clamp(0, 199) as u8);
+        }
+    }
+
+    None
+}
+
+fn serial_temperature(value: Option<u8>) -> String {
+    value
+        .map(|value| value.to_string())
+        .unwrap_or_else(|| "NA".to_string())
 }
 
 struct SerialManager {
