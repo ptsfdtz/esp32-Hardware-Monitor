@@ -36,7 +36,7 @@ const BAUD_RATE: u32 = 115_200;
 const SAMPLE_INTERVAL: Duration = Duration::from_secs(1);
 const TEMPERATURE_INTERVAL: Duration = Duration::from_secs(10);
 const DEFAULT_LIBRE_HARDWARE_MONITOR_DIR: &str = r"C:\Users\user\Downloads\LibreHardwareMonitor";
-const TEMPERATURE_PROBE_EXE: &[u8] = include_bytes!("../../temp-probe/TemperatureProbe.exe");
+const TEMPERATURE_PROBE_EXE: &[u8] = include_bytes!("../temp-probe/TemperatureProbe.exe");
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();

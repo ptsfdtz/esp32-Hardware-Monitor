@@ -1,4 +1,33 @@
-/pc-agent/target/
+# Rust / Cargo
+/target/
+
+# Release artifacts
 /dist/
+
+# Temperature probe build outputs and local vendor binaries
 /temp-probe/TemperatureProbe.exe
+/temp-probe/LibreHardwareMonitorLib.dll
+/temp-probe/*.pdb
+/temp-probe/bin/
+/temp-probe/obj/
+
+# ESP32 / Arduino build outputs
+/hardwareMonitor/build/
+/.pio/
+/.pioenvs/
+/.piolibdeps/
+*.bin
+*.elf
+*.hex
+*.map
+
+# Logs and local runtime files
 *.log
+*.tmp
+
+# Editor / OS noise
+/.vscode/
+/.idea/
+/.vs/
+Thumbs.db
+Desktop.ini
