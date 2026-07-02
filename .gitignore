@@ -1,0 +1,4 @@
+/pc-agent/target/
+/dist/
+/temp-probe/TemperatureProbe.exe
+*.log

@@ -1,0 +1,309 @@
+   0.112644900s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="MonitorSetup"}: cargo::core::compiler::fingerprint: fingerprint error for monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor)/Check { test: false }/TargetInner { name: "MonitorSetup", doc: true, ..: with_path("C:\\Users\\user\\Documents\\workspace\\projects\\esp32-Hardware-Monitor\\src\\main.rs", Edition2021) }
+   0.112708500s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="MonitorSetup"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\monitor-setup-cf1cac8fdfaac451\bin-MonitorSetup`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_libgit2_prerelease
+  12: <unknown>
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   0.122418500s  INFO prepare_target{force=false package_id=serialport v4.9.0 target="serialport"}: cargo::core::compiler::fingerprint: fingerprint error for serialport v4.9.0/Check { test: false }/TargetInner { ..: lib_target("serialport", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\serialport-4.9.0\\src\\lib.rs", Edition2021) }
+   0.122498000s  INFO prepare_target{force=false package_id=serialport v4.9.0 target="serialport"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\serialport-6210d654cab78eaf\lib-serialport`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_libgit2_prerelease
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   0.123693800s  INFO prepare_target{force=false package_id=cfg-if v1.0.4 target="cfg_if"}: cargo::core::compiler::fingerprint: fingerprint error for cfg-if v1.0.4/Check { test: false }/TargetInner { ..: lib_target("cfg_if", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\cfg-if-1.0.4\\src\\lib.rs", Edition2018) }
+   0.123734300s  INFO prepare_target{force=false package_id=cfg-if v1.0.4 target="cfg_if"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\cfg-if-38379743a7c2c287\lib-cfg_if`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.124503400s  INFO prepare_target{force=false package_id=scopeguard v1.2.0 target="scopeguard"}: cargo::core::compiler::fingerprint: fingerprint error for scopeguard v1.2.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("scopeguard", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\scopeguard-1.2.0\\src\\lib.rs", Edition2015) }
+   0.124527000s  INFO prepare_target{force=false package_id=scopeguard v1.2.0 target="scopeguard"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\scopeguard-6d64bca829475e63\lib-scopeguard`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.125019100s  INFO prepare_target{force=false package_id=windows-sys v0.52.0 target="windows_sys"}: cargo::core::compiler::fingerprint: fingerprint error for windows-sys v0.52.0/Check { test: false }/TargetInner { name_inferred: true, ..: lib_target("windows_sys", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-sys-0.52.0\\src\\lib.rs", Edition2021) }
+   0.125035800s  INFO prepare_target{force=false package_id=windows-sys v0.52.0 target="windows_sys"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\windows-sys-372d6ceb6fa3e4f4\lib-windows_sys`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.125548600s  INFO prepare_target{force=false package_id=windows-targets v0.52.6 target="windows_targets"}: cargo::core::compiler::fingerprint: fingerprint error for windows-targets v0.52.6/Check { test: false }/TargetInner { ..: lib_target("windows_targets", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-targets-0.52.6\\src\\lib.rs", Edition2021) }
+   0.125565000s  INFO prepare_target{force=false package_id=windows-targets v0.52.6 target="windows_targets"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\windows-targets-feb0185103ed2597\lib-windows_targets`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_libgit2_prerelease
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: <unknown>
+  19: git_midx_writer_dump
+  20: git_filter_source_repo
+  21: git_midx_writer_dump
+  22: BaseThreadInitThunk
+  23: RtlUserThreadStart
+   0.125991800s  INFO prepare_target{force=false package_id=windows_x86_64_msvc v0.52.6 target="windows_x86_64_msvc"}: cargo::core::compiler::fingerprint: fingerprint error for windows_x86_64_msvc v0.52.6/Check { test: false }/TargetInner { ..: lib_target("windows_x86_64_msvc", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows_x86_64_msvc-0.52.6\\src\\lib.rs", Edition2021) }
+   0.126006700s  INFO prepare_target{force=false package_id=windows_x86_64_msvc v0.52.6 target="windows_x86_64_msvc"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\windows_x86_64_msvc-0eab875a340cafdc\lib-windows_x86_64_msvc`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_filter_source_repo
+  14: git_filter_source_repo
+  15: git_libgit2_prerelease
+  16: <unknown>
+  17: <unknown>
+  18: <unknown>
+  19: <unknown>
+  20: git_midx_writer_dump
+  21: git_filter_source_repo
+  22: git_midx_writer_dump
+  23: BaseThreadInitThunk
+  24: RtlUserThreadStart
+   0.127059300s  INFO prepare_target{force=false package_id=windows-sys v0.61.2 target="windows_sys"}: cargo::core::compiler::fingerprint: fingerprint error for windows-sys v0.61.2/Check { test: false }/TargetInner { tested: false, doctest: false, ..: lib_target("windows_sys", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-sys-0.61.2\\src\\lib.rs", Edition2021) }
+   0.127076400s  INFO prepare_target{force=false package_id=windows-sys v0.61.2 target="windows_sys"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\windows-sys-3f3dd77580c0de5e\lib-windows_sys`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_libgit2_prerelease
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: git_midx_writer_dump
+  18: git_filter_source_repo
+  19: git_midx_writer_dump
+  20: BaseThreadInitThunk
+  21: RtlUserThreadStart
+   0.127577500s  INFO prepare_target{force=false package_id=windows-link v0.2.1 target="windows_link"}: cargo::core::compiler::fingerprint: fingerprint error for windows-link v0.2.1/Check { test: false }/TargetInner { ..: lib_target("windows_link", ["lib"], "C:\\Users\\user\\.cargo\\registry\\src\\index.crates.io-1949cf8c6b5b557f\\windows-link-0.2.1\\src\\lib.rs", Edition2021) }
+   0.127591100s  INFO prepare_target{force=false package_id=windows-link v0.2.1 target="windows_link"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\windows-link-54c7aa1677a9df5f\lib-windows_link`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_filter_source_repo
+  12: git_filter_source_repo
+  13: git_libgit2_prerelease
+  14: <unknown>
+  15: <unknown>
+  16: <unknown>
+  17: <unknown>
+  18: git_midx_writer_dump
+  19: git_filter_source_repo
+  20: git_midx_writer_dump
+  21: BaseThreadInitThunk
+  22: RtlUserThreadStart
+   0.128075500s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="MonitorSetup"}: cargo::core::compiler::fingerprint: fingerprint error for monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor)/Check { test: true }/TargetInner { name: "MonitorSetup", doc: true, ..: with_path("C:\\Users\\user\\Documents\\workspace\\projects\\esp32-Hardware-Monitor\\src\\main.rs", Edition2021) }
+   0.128095600s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="MonitorSetup"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\monitor-setup-591502c271ab031d\test-bin-MonitorSetup`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_libgit2_prerelease
+  12: <unknown>
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+    Checking scopeguard v1.2.0
+    Checking windows-link v0.2.1
+    Checking cfg-if v1.0.4
+    Checking windows_x86_64_msvc v0.52.6
+    Checking windows-sys v0.61.2
+    Checking windows-targets v0.52.6
+    Checking windows-sys v0.52.0
+    Checking serialport v4.9.0
+    Checking monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor)
+error: could not compile `monitor-setup` (bin "MonitorSetup") due to 1 previous error
+warning: build failed, waiting for other jobs to finish...
+error: could not compile `monitor-setup` (bin "MonitorSetup" test) due to 1 previous error

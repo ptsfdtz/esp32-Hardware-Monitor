@@ -1,0 +1,26 @@
+[package]
+name = "monitor-setup"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "MonitorSetup"
+path = "src/main.rs"
+
+[dependencies]
+serialport = { version = "4.9.0", default-features = false }
+windows-sys = { version = "0.61.2", features = [
+  "Win32_Foundation",
+  "Win32_Security",
+  "Win32_System_Registry",
+  "Win32_System_SystemInformation",
+  "Win32_System_Threading",
+  "Win32_UI_WindowsAndMessaging",
+] }
+
+[profile.release]
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
