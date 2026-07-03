@@ -1,0 +1,59 @@
+name: Build and Release MonitorSetup
+
+on:
+  push:
+    tags:
+      - "*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-release:
+    name: Build Windows exe
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build MonitorSetup
+        shell: pwsh
+        run: .\scripts\build-monitor-setup.ps1
+
+      - name: Prepare release asset
+        id: asset
+        shell: pwsh
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $safeTag = $tag -replace '[\\/:*?"<>|]', '-'
+          $assetName = "MonitorSetup-$safeTag.exe"
+          New-Item -ItemType Directory -Force release | Out-Null
+          Copy-Item -Force dist\MonitorSetup.exe "release\$assetName"
+          "asset_name=$assetName" >> $env:GITHUB_OUTPUT
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.asset.outputs.asset_name }}
+          path: release/${{ steps.asset.outputs.asset_name }}
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = "${{ github.ref_name }}"
+          $asset = "release\${{ steps.asset.outputs.asset_name }}"
+
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag $asset --clobber
+          } else {
+            gh release create $tag $asset --title $tag --generate-notes
+          }

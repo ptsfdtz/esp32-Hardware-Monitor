@@ -2,7 +2,7 @@
 
 电脑端后台程序会采集 Windows 的 CPU / GPU / RAM 使用率，通过 USB 串口发送给 ESP32-C3，由 OLED 显示硬件状态。
 
-后台程序还会尝试通过 LibreHardwareMonitor 读取 CPU / GPU 温度，并发送到第二、第三块 OLED。
+后台程序还会尝试通过 LibreHardwareMonitor 读取 CPU / GPU 温度，并发送到第二、第三块 OLED。GPU 温度会适配 Intel / AMD / NVIDIA 主流显卡：有独显时优先显示独显温度，没有独显时使用核显温度；如果当前驱动或硬件没有暴露温度传感器，则发送 `NA`。
 
 ## 串口协议
 
@@ -136,7 +136,7 @@ dist\MonitorSetup.exe
 C:\Users\user\Downloads\LibreHardwareMonitor\LibreHardwareMonitorLib.dll
 ```
 
-如果 LibreHardwareMonitor 放在其他目录，可以设置环境变量 `LIBRE_HARDWARE_MONITOR_DIR` 指向它。日志中出现 `CPU_TEMP=NA;GPU_TEMP=NA` 表示程序路径已经打通，但当前权限/硬件/驱动没有暴露温度传感器。
+如果 LibreHardwareMonitor 放在其他目录，可以设置环境变量 `LIBRE_HARDWARE_MONITOR_DIR` 指向它。日志中出现 `CPU_TEMP=NA;GPU_TEMP=NA` 表示程序路径已经打通，但当前权限/硬件/驱动没有暴露温度传感器。Intel UHD / Iris 核显常见情况是能读取频率、功耗、占用率，但没有单独的 GPU 温度传感器，此时第三块 OLED 会显示空值。
 
 卸载开机自启动：
 
