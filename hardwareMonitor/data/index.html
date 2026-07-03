@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ESP32 Hardware Monitor</title>
+<style>
+:root{color-scheme:dark;--bg:#08090b;--panel:#14161a;--line:#2b3038;--ink:#f5f7fb;--muted:#9aa3ad;--accent:#5eead4}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+main{width:min(760px,100%);margin:0 auto;padding:28px 18px 40px}
+h1{font-size:24px;margin:0 0 6px;font-weight:700;letter-spacing:0}
+p{margin:0;color:var(--muted)}
+.top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:20px}
+.badge{border:1px solid var(--line);padding:7px 10px;border-radius:8px;color:var(--accent);font:12px ui-monospace,Consolas,monospace;white-space:nowrap}
+section{border-top:1px solid var(--line);padding:20px 0}
+h2{font-size:14px;margin:0 0 12px;color:var(--muted);font-weight:650;text-transform:uppercase}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+button{width:100%;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:14px 12px;text-align:left;font:inherit;cursor:pointer}
+button strong{display:block;font-size:16px;margin-bottom:4px}
+button span{display:block;color:var(--muted);font-size:13px}
+button.active{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+label{display:block;margin:0 0 12px;color:var(--muted);font-size:13px}
+input{width:100%;margin-top:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:12px;font:inherit}
+.save{background:var(--accent);border-color:var(--accent);color:#04201d;text-align:center;font-weight:750}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.kv{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:12px}
+.kv b{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+.kv code{font:14px ui-monospace,Consolas,monospace}
+@media(max-width:620px){.top,.modes,.grid{display:block}.badge,.modes form,.kv{margin-top:12px}}
+</style>
+</head>
+<body><main>
+<div class="top"><div><h1>ESP32 Hardware Monitor</h1><p>调整三块 OLED 的显示方式和 WiFi 连接。</p></div><div class="badge">MODE: {{MODE}}</div></div>
+<section><h2>显示模式</h2><div class="modes">
+<form method="post" action="/mode"><input type="hidden" name="mode" value="dashboard"><button class="{{DASH_ACTIVE}}"><strong>当前样式</strong><span>屏幕 1 显示 CPU/GPU/RAM，占用率；屏幕 2/3 显示温度。</span></button></form>
+<form method="post" action="/mode"><input type="hidden" name="mode" value="split"><button class="{{SPLIT_ACTIVE}}"><strong>分屏温度</strong><span>屏幕 1 CPU 温度，屏幕 2 GPU 温度，屏幕 3 RAM 占用。</span></button></form>
+</div></section>
+<section><h2>WiFi</h2><form method="post" action="/wifi"><label>SSID<input name="ssid" autocomplete="off"></label><label>密码<input name="pass" type="password"></label><button class="save">保存并连接</button></form></section>
+<section><h2>网络状态</h2><div class="grid"><div class="kv"><b>配置热点</b><code>{{AP_IP}}</code></div><div class="kv"><b>路由器地址</b><code>{{STA_IP}}</code></div></div></section>
+</main></body></html>

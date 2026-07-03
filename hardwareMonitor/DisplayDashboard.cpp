@@ -1,7 +1,9 @@
 #include "DisplayDashboard.h"
 
 #include "Config.h"
+#include "DisplayMode.h"
 #include "Metrics.h"
+#include "WebConfig.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include <Arduino.h>
@@ -16,6 +18,8 @@ static bool beginDisplayChannel(int channel);
 static void drawUsageScreen();
 static void drawTemperatureScreen(TemperatureMetric metric);
 static bool shouldDrawTemperatureScreens();
+static void drawPercentScreen(Metric metric);
+static void drawRoundedPercentValue(int value);
 static void drawMetricRow(int rowY, Metric metric);
 static void drawPremiumBar(int x, int y, int w, int h, float percent);
 static void drawSegmentText(int x, int y, const char *text);
@@ -75,13 +79,42 @@ bool beginDisplay()
 
 void drawDashboard()
 {
+  DisplayMode mode = getDisplayMode();
+
+  if (mode == DISPLAY_MODE_SPLIT)
+  {
+    if (selectDisplayChannel(OLED_USAGE_CHANNEL))
+    {
+      drawTemperatureScreen(temperatures[0]);
+      display.display();
+    }
+
+    if (selectDisplayChannel(OLED_CPU_TEMP_CHANNEL))
+    {
+      drawTemperatureScreen(temperatures[1]);
+      display.display();
+    }
+
+    if (selectDisplayChannel(OLED_GPU_TEMP_CHANNEL))
+    {
+      drawPercentScreen(metrics[2]);
+      display.display();
+    }
+
+    return;
+  }
+
   if (selectDisplayChannel(OLED_USAGE_CHANNEL))
   {
     drawUsageScreen();
     display.display();
   }
 
-  if (shouldDrawTemperatureScreens())
+  if (!shouldDrawTemperatureScreens())
+  {
+    return;
+  }
+
   {
     if (selectDisplayChannel(OLED_CPU_TEMP_CHANNEL))
     {
@@ -160,6 +193,68 @@ static bool shouldDrawTemperatureScreens()
   }
 
   return false;
+}
+
+static void drawPercentScreen(Metric metric)
+{
+  display.clearDisplay();
+
+  int value = roundf(metric.currentValue);
+  drawRoundedPercentValue(value);
+}
+
+static void drawRoundedPercentValue(int value)
+{
+  value = constrain(value, 0, 100);
+
+  int digits[3];
+  int count = 0;
+
+  if (value >= 100)
+  {
+    digits[0] = 1;
+    digits[1] = 0;
+    digits[2] = 0;
+    count = 3;
+  }
+  else if (value >= 10)
+  {
+    digits[0] = value / 10;
+    digits[1] = value % 10;
+    count = 2;
+  }
+  else
+  {
+    digits[0] = 0;
+    digits[1] = value;
+    count = 2;
+  }
+
+  const int scale = 3;
+  const int digitW = 7 * scale;
+  const int digitH = 14 * scale;
+  const int gap = 5;
+  const int suffixGap = 7;
+  const int suffixW = 11 * scale;
+  const int totalW = count * digitW + (count - 1) * gap + suffixGap + suffixW;
+  int x = (SCREEN_WIDTH - totalW) / 2;
+  int y = (SCREEN_HEIGHT - digitH) / 2;
+
+  if (x < 0)
+  {
+    x = 0;
+  }
+
+  for (int i = 0; i < count; i++)
+  {
+    drawRoundedDigit(x + i * (digitW + gap), y, digits[i], scale);
+  }
+
+  int suffixX = x + count * digitW + (count - 1) * gap + suffixGap;
+  display.drawCircle(suffixX + scale, y + 2 * scale, scale, SSD1306_WHITE);
+  display.drawCircle(suffixX + 7 * scale, y + 10 * scale, scale, SSD1306_WHITE);
+  display.drawLine(suffixX + scale, y + 12 * scale, suffixX + 9 * scale, y + scale, SSD1306_WHITE);
+  display.drawLine(suffixX + 2 * scale, y + 12 * scale, suffixX + 10 * scale, y + scale, SSD1306_WHITE);
 }
 
 static void drawMetricRow(int rowY, Metric metric)

@@ -2,19 +2,18 @@
 #include "DisplayDashboard.h"
 #include "Metrics.h"
 #include "SerialProtocol.h"
+#include "WebConfig.h"
 
 unsigned long lastFrameTime = 0;
 
 void setup()
 {
   Serial.begin(115200);
+  beginWebConfig();
 
   if (!beginDisplay())
   {
-    while (true)
-    {
-      delay(1000);
-    }
+    Serial.println("display init failed");
   }
 
   lastFrameTime = millis();
@@ -22,6 +21,7 @@ void setup()
 
 void loop()
 {
+  handleWebConfig();
   readSerialData();
 
   unsigned long now = millis();

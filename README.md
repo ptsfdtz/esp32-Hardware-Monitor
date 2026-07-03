@@ -40,6 +40,65 @@ ESP32 固件位于 `hardwareMonitor/hardwareMonitor.ino`。
 .\scripts\flash-firmware.ps1 -Port COM4
 ```
 
+脚本默认使用和当前 Arduino IDE 相同的 ESP32-C3 参数：
+
+```text
+UploadSpeed=115200
+CDCOnBoot=cdc
+FlashFreq=40
+FlashMode=dio
+EraseFlash=all
+```
+
+网页配置页位于：
+
+```text
+hardwareMonitor\data\index.html
+```
+
+上传网页到 SPIFFS：
+
+```powershell
+.\scripts\upload-data.ps1 -Port COM4
+```
+
+如果改了网页文件，只需要重新执行 `upload-data.ps1`，不需要重新编译固件。
+
+## Web 配置
+
+ESP32-C3 启动后会先连接默认 WiFi：
+
+```text
+SSID: LanaoTech
+Password: lanao2025
+```
+
+连接成功后会在串口打印路由器分配的 IP，例如：
+
+```text
+station ip=192.168.1.23
+```
+
+如果连接失败，才会启动配置热点：
+
+```text
+SSID: ESP32-Monitor
+Password: none
+```
+
+连接热点后打开：
+
+```text
+http://192.168.4.1/
+```
+
+网页里可以保存 WiFi，并切换显示模式：
+
+- 当前样式：OLED1 显示 CPU / GPU / RAM 占用率，OLED2 显示 CPU 温度，OLED3 显示 GPU 温度
+- 分屏温度：OLED1 显示 CPU 温度，OLED2 显示 GPU 温度，OLED3 显示 RAM 占用率
+
+保存后的显示模式会写入 ESP32 flash，重启后仍然保留。
+
 如果 PCA9848A 模块改过地址脚，请同步修改 `hardwareMonitor/Config.h` 里的 `PCA9848A_ADDR`。
 
 ## 构建 Windows 程序

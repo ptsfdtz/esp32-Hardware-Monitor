@@ -3,6 +3,7 @@
 
 # Release artifacts
 /dist/
+spiffs*.bin
 
 # Temperature probe build outputs and local vendor binaries
 /temp-probe/TemperatureProbe.exe
