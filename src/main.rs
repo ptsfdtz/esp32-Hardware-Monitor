@@ -35,8 +35,52 @@ const RUN_VALUE_NAME: &str = "ESP32 Hardware Monitor";
 const BAUD_RATE: u32 = 115_200;
 const SAMPLE_INTERVAL: Duration = Duration::from_secs(1);
 const TEMPERATURE_INTERVAL: Duration = Duration::from_secs(10);
-const DEFAULT_LIBRE_HARDWARE_MONITOR_DIR: &str = r"C:\Users\user\Downloads\LibreHardwareMonitor";
 const TEMPERATURE_PROBE_EXE: &[u8] = include_bytes!("../temp-probe/TemperatureProbe.exe");
+const LIBRE_HARDWARE_MONITOR_FILES: &[BundledFile] = &[
+    BundledFile {
+        name: "LibreHardwareMonitorLib.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/LibreHardwareMonitorLib.dll"),
+    },
+    BundledFile {
+        name: "System.Memory.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/System.Memory.dll"),
+    },
+    BundledFile {
+        name: "System.Numerics.Vectors.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/System.Numerics.Vectors.dll"),
+    },
+    BundledFile {
+        name: "System.Runtime.CompilerServices.Unsafe.dll",
+        bytes: include_bytes!(
+            "../temp-probe/vendor/LibreHardwareMonitor/System.Runtime.CompilerServices.Unsafe.dll"
+        ),
+    },
+    BundledFile {
+        name: "System.Buffers.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/System.Buffers.dll"),
+    },
+    BundledFile {
+        name: "HidSharp.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/HidSharp.dll"),
+    },
+    BundledFile {
+        name: "RAMSPDToolkit-NDD.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/RAMSPDToolkit-NDD.dll"),
+    },
+    BundledFile {
+        name: "DiskInfoToolkit.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/DiskInfoToolkit.dll"),
+    },
+    BundledFile {
+        name: "BlackSharp.Core.dll",
+        bytes: include_bytes!("../temp-probe/vendor/LibreHardwareMonitor/BlackSharp.Core.dll"),
+    },
+];
+
+struct BundledFile {
+    name: &'static str,
+    bytes: &'static [u8],
+}
 
 fn main() {
     let args: Vec<String> = env::args().skip(1).collect();
@@ -317,17 +361,24 @@ struct TemperatureReading {
 
 impl TemperatureProbe {
     fn new() -> Self {
-        let exe_path = app_dir()
-            .unwrap_or_else(|_| env::temp_dir())
-            .join("TemperatureProbe.exe");
+        let base_dir = app_dir().unwrap_or_else(|_| env::temp_dir().join(APP_DIR_NAME));
+        let exe_path = base_dir.join("TemperatureProbe.exe");
+        let bundled_libre_dir = base_dir.join("LibreHardwareMonitor");
         let libre_dir = env::var_os("LIBRE_HARDWARE_MONITOR_DIR")
             .map(PathBuf::from)
-            .unwrap_or_else(|| PathBuf::from(DEFAULT_LIBRE_HARDWARE_MONITOR_DIR));
+            .unwrap_or_else(|| bundled_libre_dir.clone());
 
         if let Err(err) = fs::write(&exe_path, TEMPERATURE_PROBE_EXE) {
             log_line(&format!(
                 "temperature probe install failed {}: {err}",
                 exe_path.display()
+            ));
+        }
+
+        if let Err(err) = install_bundled_files(&bundled_libre_dir, LIBRE_HARDWARE_MONITOR_FILES) {
+            log_line(&format!(
+                "libre hardware monitor install failed {}: {err}",
+                bundled_libre_dir.display()
             ));
         }
 
@@ -394,6 +445,27 @@ impl TemperatureProbe {
             }
         }
     }
+}
+
+fn install_bundled_files(dir: &Path, files: &[BundledFile]) -> Result<(), String> {
+    fs::create_dir_all(dir).map_err(|e| format!("无法创建目录 {}: {e}", dir.display()))?;
+
+    for file in files {
+        let path = dir.join(file.name);
+        if file_matches(&path, file.bytes) {
+            continue;
+        }
+
+        fs::write(&path, file.bytes).map_err(|e| format!("无法写入 {}: {e}", path.display()))?;
+    }
+
+    Ok(())
+}
+
+fn file_matches(path: &Path, expected: &[u8]) -> bool {
+    fs::read(path)
+        .map(|actual| actual == expected)
+        .unwrap_or(false)
 }
 
 fn parse_temperature_reading(line: &str) -> TemperatureReading {

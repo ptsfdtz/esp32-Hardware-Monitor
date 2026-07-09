@@ -5,6 +5,11 @@ $DistDir = Join-Path $Root "dist"
 $Exe = Join-Path $Root "target\release\MonitorSetup.exe"
 $OutExe = Join-Path $DistDir "MonitorSetup.exe"
 
+& (Join-Path $PSScriptRoot "prepare-libre-hardware-monitor.ps1")
+if ($LASTEXITCODE -ne 0) {
+  exit $LASTEXITCODE
+}
+
 & (Join-Path $PSScriptRoot "build-temperature-probe.ps1")
 if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE

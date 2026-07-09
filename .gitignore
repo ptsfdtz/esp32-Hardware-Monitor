@@ -8,6 +8,7 @@ spiffs*.bin
 # Temperature probe build outputs and local vendor binaries
 /temp-probe/TemperatureProbe.exe
 /temp-probe/LibreHardwareMonitorLib.dll
+/temp-probe/vendor/
 /temp-probe/*.pdb
 /temp-probe/bin/
 /temp-probe/obj/

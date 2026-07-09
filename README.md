@@ -130,13 +130,13 @@ dist\MonitorSetup.exe
 %LOCALAPPDATA%\ESP32HardwareMonitor\monitor.log
 ```
 
-温度读取默认依赖：
+温度读取依赖会在构建时下载 LibreHardwareMonitor，并打包进 `MonitorSetup.exe`。后台启动后会自动释放到：
 
 ```text
-C:\Users\user\Downloads\LibreHardwareMonitor\LibreHardwareMonitorLib.dll
+%LOCALAPPDATA%\ESP32HardwareMonitor\LibreHardwareMonitor\
 ```
 
-如果 LibreHardwareMonitor 放在其他目录，可以设置环境变量 `LIBRE_HARDWARE_MONITOR_DIR` 指向它。日志中出现 `CPU_TEMP=NA;GPU_TEMP=NA` 表示程序路径已经打通，但当前权限/硬件/驱动没有暴露温度传感器。Intel UHD / Iris 核显常见情况是能读取频率、功耗、占用率，但没有单独的 GPU 温度传感器，此时第三块 OLED 会显示空值。
+如果想使用自己下载的 LibreHardwareMonitor，可以设置环境变量 `LIBRE_HARDWARE_MONITOR_DIR` 指向它。日志中出现 `libre_missing` 表示依赖目录不存在；日志中出现 `CPU_TEMP=NA;GPU_TEMP=NA` 表示程序路径已经打通，但当前权限/硬件/驱动没有暴露温度传感器。Intel UHD / Iris 核显常见情况是能读取频率、功耗、占用率，但没有单独的 GPU 温度传感器，此时第三块 OLED 会显示空值。
 
 卸载开机自启动：
 
