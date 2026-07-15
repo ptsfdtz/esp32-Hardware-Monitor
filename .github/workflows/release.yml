@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: windows-release-package-base64
-          path: dist/ESP32HardwareMonitor-windows-x64.zip.b64
+          path: dist/release-package-parts/*.part
           if-no-files-found: error
           retention-days: 1
 
@@ -65,7 +65,7 @@ jobs:
           mkdir -p release
           asset_path="release/${asset_name}"
           checksum_path="release/${checksum_name}"
-          base64 --decode encoded-package/ESP32HardwareMonitor-windows-x64.zip.b64 > "${asset_path}"
+          cat encoded-package/*.part | base64 --decode > "${asset_path}"
           hash="$(sha256sum "${asset_path}" | cut -d ' ' -f1)"
           printf '%s *%s' "${hash}" "${asset_name}" > "${checksum_path}"
 
