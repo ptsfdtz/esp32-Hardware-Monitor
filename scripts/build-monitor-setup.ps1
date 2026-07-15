@@ -2,7 +2,12 @@ $ErrorActionPreference = "Stop"
 
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $DistDir = Join-Path $Root "dist"
-$Exe = Join-Path $Root "target\release\ESP32HardwareMonitor.exe"
+$CargoTargetDir = if ([string]::IsNullOrWhiteSpace($env:CARGO_TARGET_DIR)) {
+  Join-Path $Root "target"
+} else {
+  $env:CARGO_TARGET_DIR
+}
+$Exe = Join-Path $CargoTargetDir "release\ESP32HardwareMonitor.exe"
 $OutExe = Join-Path $DistDir "ESP32HardwareMonitor.exe"
 
 & (Join-Path $PSScriptRoot "prepare-libre-hardware-monitor.ps1")
