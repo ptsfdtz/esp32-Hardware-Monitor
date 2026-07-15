@@ -4,6 +4,7 @@ $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $ProbeDir = Join-Path $Root "temp-probe"
 $Csc = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 $OutExe = Join-Path $ProbeDir "TemperatureProbe.exe"
+$ElevatedAgentExe = Join-Path $ProbeDir "ElevatedTemperatureAgent.exe"
 
 if (!(Test-Path $Csc)) {
   $Csc = "$env:WINDIR\Microsoft.NET\Framework\v4.0.30319\csc.exe"
@@ -25,4 +26,17 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
+& $Csc `
+  /nologo `
+  /optimize+ `
+  /target:winexe `
+  /platform:x64 `
+  /out:$ElevatedAgentExe `
+  (Join-Path $ProbeDir "ElevatedTemperatureAgent.cs")
+
+if ($LASTEXITCODE -ne 0) {
+  exit $LASTEXITCODE
+}
+
 Write-Host "Built $OutExe"
+Write-Host "Built $ElevatedAgentExe"

@@ -1,6 +1,7 @@
 use crate::logging::log_line;
 use crate::metrics::MetricsCollector;
 use crate::paths::app_dir;
+use crate::pawnio::is_installed as is_pawnio_installed;
 use crate::serial_link::SerialManager;
 use crate::temperature::{serial_temperature, TemperatureProbe};
 use crate::win_util::SingleInstance;
@@ -15,6 +16,12 @@ pub fn run_agent() -> Result<(), String> {
 
     let _single_instance = SingleInstance::new("Local\\ESP32HardwareMonitorAgent")?;
     log_line("agent started");
+
+    if !is_pawnio_installed() {
+        log_line(
+            "PawnIO is not installed; CPU temperature may be unavailable. Run ESP32HardwareMonitorAgent.exe --install-pawnio to request installation.",
+        );
+    }
 
     let mut collector = MetricsCollector::new();
     let mut serial = SerialManager::new();

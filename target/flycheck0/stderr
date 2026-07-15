@@ -1,1 +1,58 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.11s
+   0.374186300s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="ESP32HardwareMonitor"}: cargo::core::compiler::fingerprint: fingerprint error for monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor)/Check { test: false }/TargetInner { name: "ESP32HardwareMonitor", doc: true, ..: with_path("C:\\Users\\user\\Documents\\workspace\\projects\\esp32-Hardware-Monitor\\src\\main.rs", Edition2021) }
+   0.374240900s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="ESP32HardwareMonitor"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\monitor-setup-ecd290cfdc16354b\bin-ESP32HardwareMonitor`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_libgit2_prerelease
+  12: <unknown>
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+   0.448741100s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="ESP32HardwareMonitor"}: cargo::core::compiler::fingerprint: fingerprint error for monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor)/Check { test: true }/TargetInner { name: "ESP32HardwareMonitor", doc: true, ..: with_path("C:\\Users\\user\\Documents\\workspace\\projects\\esp32-Hardware-Monitor\\src\\main.rs", Edition2021) }
+   0.448762800s  INFO prepare_target{force=false package_id=monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor) target="ESP32HardwareMonitor"}: cargo::core::compiler::fingerprint:     err: failed to read `C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor\target\debug\.fingerprint\monitor-setup-4bb83f4321cd85c5\test-bin-ESP32HardwareMonitor`
+
+Caused by:
+    系统找不到指定的文件。 (os error 2)
+
+Stack backtrace:
+   0: git_midx_writer_dump
+   1: git_midx_writer_dump
+   2: git_midx_writer_dump
+   3: git_midx_writer_dump
+   4: git_filter_source_repo
+   5: git_filter_source_repo
+   6: git_filter_source_repo
+   7: git_filter_source_repo
+   8: git_filter_source_repo
+   9: git_filter_source_repo
+  10: git_filter_source_repo
+  11: git_libgit2_prerelease
+  12: <unknown>
+  13: <unknown>
+  14: <unknown>
+  15: <unknown>
+  16: git_midx_writer_dump
+  17: git_filter_source_repo
+  18: git_midx_writer_dump
+  19: BaseThreadInitThunk
+  20: RtlUserThreadStart
+    Checking monitor-setup v0.1.0 (C:\Users\user\Documents\workspace\projects\esp32-Hardware-Monitor)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 3.36s

@@ -112,17 +112,19 @@ http://192.168.4.1/
 生成文件：
 
 ```text
-dist\MonitorSetup.exe
+dist\ESP32HardwareMonitor.exe
 ```
 
 ## 使用
 
-双击 `MonitorSetup.exe` 后会：
+双击 `ESP32HardwareMonitor.exe` 后会静默完成安装并启动后台监控，不显示成功确认窗口：
 
-- 复制自身到 `%LOCALAPPDATA%\ESP32HardwareMonitor\MonitorSetup.exe`
+- 复制自身到 `%LOCALAPPDATA%\ESP32HardwareMonitor\ESP32HardwareMonitorAgent.exe`
 - 写入当前用户的开机自启动
 - 启动后台监控进程
 - 自动扫描 ESP32-C3 / Espressif / 常见 USB 串口并发送数据
+
+登录 Windows 后，主程序会通过当前用户的开机启动项在后台运行，不显示控制台或确认窗口。
 
 日志文件：
 
@@ -130,7 +132,7 @@ dist\MonitorSetup.exe
 %LOCALAPPDATA%\ESP32HardwareMonitor\monitor.log
 ```
 
-温度读取依赖会在构建时下载 LibreHardwareMonitor，并打包进 `MonitorSetup.exe`。后台启动后会自动释放到：
+普通权限的温度读取依赖会在构建时下载 LibreHardwareMonitor，并打包进 `ESP32HardwareMonitor.exe`。后台启动后会自动释放到：
 
 ```text
 %LOCALAPPDATA%\ESP32HardwareMonitor\LibreHardwareMonitor\
@@ -138,8 +140,32 @@ dist\MonitorSetup.exe
 
 如果想使用自己下载的 LibreHardwareMonitor，可以设置环境变量 `LIBRE_HARDWARE_MONITOR_DIR` 指向它。日志中出现 `libre_missing` 表示依赖目录不存在；日志中出现 `CPU_TEMP=NA;GPU_TEMP=NA` 表示程序路径已经打通，但当前权限/硬件/驱动没有暴露温度传感器。Intel UHD / Iris 核显常见情况是能读取频率、功耗、占用率，但没有单独的 GPU 温度传感器，此时第三块 OLED 会显示空值。
 
+部分 AMD Ryzen CPU（包括本机的 5700X3D）需要 LibreHardwareMonitor 使用的 PawnIO 驱动。首次需要时，以普通方式运行下面命令，并在 Windows 权限提示中确认；程序不会在后台静默安装驱动：
+
+```powershell
+& "$env:LOCALAPPDATA\ESP32HardwareMonitor\ESP32HardwareMonitorAgent.exe" --install-pawnio
+```
+
+安装完成后，后台监控会在下一次采样时自动重试 CPU 温度。
+
+PawnIO 为保护 CPU 寄存器，只允许高权限进程读取 Ryzen 温度。因此驱动安装完成后还需要执行一次下面的设置；它会显示一次 Windows 权限确认，用于把仅负责温度的助手安装到受保护的 `Program Files` 目录，并注册一个受保护的“登录时最高可用权限”任务：
+
+```powershell
+& "$env:LOCALAPPDATA\ESP32HardwareMonitor\ESP32HardwareMonitorAgent.exe" --enable-elevated-temperature
+```
+
+这一次设置完成后，后续每次登录不会再出现 UAC、控制台或确认窗口：普通主程序仍以普通权限静默运行并发送串口数据；受保护的温度助手在后台读取 CPU/GPU 温度，并通过 `%PROGRAMDATA%\ESP32HardwareMonitor\temperature.txt` 提供给主程序。助手及其 DLL 位于 `C:\Program Files\ESP32HardwareMonitor\`，普通用户无权修改。
+
+如需移除这个高权限温度任务（同样只会出现一次权限确认）：
+
+```powershell
+& "$env:LOCALAPPDATA\ESP32HardwareMonitor\ESP32HardwareMonitorAgent.exe" --disable-elevated-temperature
+```
+
 卸载开机自启动：
 
 ```powershell
-%LOCALAPPDATA%\ESP32HardwareMonitor\MonitorSetup.exe --uninstall
+& "$env:LOCALAPPDATA\ESP32HardwareMonitor\ESP32HardwareMonitorAgent.exe" --uninstall
 ```
+
+如果已启用高权限温度任务，请先执行 `--disable-elevated-temperature`，再执行 `--uninstall`。

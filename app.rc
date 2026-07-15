@@ -1,0 +1,2 @@
+// 24 is the Windows-defined RT_MANIFEST resource type.
+1 24 "app.manifest"

@@ -1,6 +1,6 @@
 use crate::config::APP_DIR_NAME;
 use crate::logging::log_line;
-use crate::paths::app_dir;
+use crate::paths::{agent_runtime_dir, elevated_temperature_output_path};
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -12,7 +12,10 @@ use windows_sys::Win32::System::Threading::CREATE_NO_WINDOW;
 use std::os::windows::process::CommandExt;
 
 const TEMPERATURE_INTERVAL: Duration = Duration::from_secs(10);
+const ELEVATED_TEMPERATURE_MAX_AGE: Duration = Duration::from_secs(35);
 const TEMPERATURE_PROBE_EXE: &[u8] = include_bytes!("../temp-probe/TemperatureProbe.exe");
+const ELEVATED_TEMPERATURE_AGENT_EXE: &[u8] =
+    include_bytes!("../temp-probe/ElevatedTemperatureAgent.exe");
 const LIBRE_HARDWARE_MONITOR_FILES: &[BundledFile] = &[
     BundledFile {
         name: "LibreHardwareMonitorLib.dll",
@@ -78,26 +81,18 @@ pub struct TemperatureReading {
 
 impl TemperatureProbe {
     pub fn new() -> Self {
-        let base_dir = app_dir().unwrap_or_else(|_| env::temp_dir().join(APP_DIR_NAME));
+        let base_dir = agent_runtime_dir().unwrap_or_else(|_| env::temp_dir().join(APP_DIR_NAME));
         let exe_path = base_dir.join("TemperatureProbe.exe");
         let bundled_libre_dir = base_dir.join("LibreHardwareMonitor");
-        let libre_dir = env::var_os("LIBRE_HARDWARE_MONITOR_DIR")
-            .map(PathBuf::from)
-            .unwrap_or_else(|| bundled_libre_dir.clone());
 
-        if let Err(err) = fs::write(&exe_path, TEMPERATURE_PROBE_EXE) {
+        if let Err(err) = install_probe_runtime_files(&base_dir) {
             log_line(&format!(
-                "temperature probe install failed {}: {err}",
-                exe_path.display()
+                "temperature runtime install failed {}: {err}",
+                base_dir.display()
             ));
         }
 
-        if let Err(err) = install_bundled_files(&bundled_libre_dir, LIBRE_HARDWARE_MONITOR_FILES) {
-            log_line(&format!(
-                "libre hardware monitor install failed {}: {err}",
-                bundled_libre_dir.display()
-            ));
-        }
+        let libre_dir = resolve_libre_dir(&bundled_libre_dir);
 
         Self {
             exe_path,
@@ -121,12 +116,21 @@ impl TemperatureProbe {
 
         self.last_sample = Some(now);
 
+        if let Some(reading) = read_elevated_temperature() {
+            self.latest = reading;
+            return Some(format!(
+                "elevated CPU_TEMP={};GPU_TEMP={}",
+                serial_temperature(reading.cpu),
+                serial_temperature(reading.gpu)
+            ));
+        }
+
         if !self.exe_path.exists() {
             self.latest = TemperatureReading::default();
             return Some("probe_missing".to_string());
         }
 
-        if !self.libre_dir.join("LibreHardwareMonitorLib.dll").exists() {
+        if !has_required_libre_files(&self.libre_dir) {
             self.latest = TemperatureReading::default();
             return Some(format!("libre_missing path={}", self.libre_dir.display()));
         }
@@ -162,6 +166,62 @@ impl TemperatureProbe {
             }
         }
     }
+}
+
+pub fn install_elevated_runtime_files(dir: &Path) -> Result<(), String> {
+    fs::create_dir_all(dir).map_err(|e| format!("无法创建目录 {}: {e}", dir.display()))?;
+    let probe_path = dir.join("TemperatureProbe.exe");
+    if !file_matches(&probe_path, TEMPERATURE_PROBE_EXE) {
+        fs::write(&probe_path, TEMPERATURE_PROBE_EXE)
+            .map_err(|e| format!("无法写入 {}: {e}", probe_path.display()))?;
+    }
+
+    let agent_path = dir.join("ESP32HardwareMonitorTemperatureAgent.exe");
+    if !file_matches(&agent_path, ELEVATED_TEMPERATURE_AGENT_EXE) {
+        fs::write(&agent_path, ELEVATED_TEMPERATURE_AGENT_EXE)
+            .map_err(|e| format!("无法写入 {}: {e}", agent_path.display()))?;
+    }
+
+    install_bundled_files(
+        &dir.join("LibreHardwareMonitor"),
+        LIBRE_HARDWARE_MONITOR_FILES,
+    )
+}
+
+fn install_probe_runtime_files(dir: &Path) -> Result<(), String> {
+    fs::create_dir_all(dir).map_err(|e| format!("无法创建目录 {}: {e}", dir.display()))?;
+    let probe_path = dir.join("TemperatureProbe.exe");
+    if !file_matches(&probe_path, TEMPERATURE_PROBE_EXE) {
+        fs::write(&probe_path, TEMPERATURE_PROBE_EXE)
+            .map_err(|e| format!("无法写入 {}: {e}", probe_path.display()))?;
+    }
+
+    install_bundled_files(
+        &dir.join("LibreHardwareMonitor"),
+        LIBRE_HARDWARE_MONITOR_FILES,
+    )
+}
+
+fn resolve_libre_dir(bundled_libre_dir: &Path) -> PathBuf {
+    let Some(override_dir) = env::var_os("LIBRE_HARDWARE_MONITOR_DIR").map(PathBuf::from) else {
+        return bundled_libre_dir.to_path_buf();
+    };
+
+    if has_required_libre_files(&override_dir) {
+        return override_dir;
+    }
+
+    log_line(&format!(
+        "invalid LIBRE_HARDWARE_MONITOR_DIR {}, using bundled dependencies",
+        override_dir.display()
+    ));
+    bundled_libre_dir.to_path_buf()
+}
+
+fn has_required_libre_files(dir: &Path) -> bool {
+    LIBRE_HARDWARE_MONITOR_FILES
+        .iter()
+        .all(|file| dir.join(file.name).is_file())
 }
 
 pub fn serial_temperature(value: Option<u8>) -> String {
@@ -216,4 +276,39 @@ fn parse_temperature_field(line: &str, key: &str) -> Option<u8> {
     }
 
     None
+}
+
+fn read_elevated_temperature() -> Option<TemperatureReading> {
+    let path = elevated_temperature_output_path().ok()?;
+    let metadata = fs::metadata(&path).ok()?;
+    let modified = metadata.modified().ok()?;
+    if SystemTime::now().duration_since(modified).ok()? > ELEVATED_TEMPERATURE_MAX_AGE {
+        return None;
+    }
+
+    let line = fs::read_to_string(path).ok()?;
+    if !line
+        .split(';')
+        .any(|field| field.trim().eq_ignore_ascii_case("VERSION=1"))
+    {
+        return None;
+    }
+    let timestamp = parse_timestamp(&line)?;
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .ok()?
+        .as_secs();
+    if now.abs_diff(timestamp) > ELEVATED_TEMPERATURE_MAX_AGE.as_secs() {
+        return None;
+    }
+
+    Some(parse_temperature_reading(&line))
+}
+
+fn parse_timestamp(line: &str) -> Option<u64> {
+    line.split(';')
+        .find_map(|field| field.trim().strip_prefix("TIMESTAMP="))?
+        .trim()
+        .parse()
+        .ok()
 }

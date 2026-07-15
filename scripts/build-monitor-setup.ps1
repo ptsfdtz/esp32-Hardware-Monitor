@@ -2,8 +2,8 @@ $ErrorActionPreference = "Stop"
 
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 $DistDir = Join-Path $Root "dist"
-$Exe = Join-Path $Root "target\release\MonitorSetup.exe"
-$OutExe = Join-Path $DistDir "MonitorSetup.exe"
+$Exe = Join-Path $Root "target\release\ESP32HardwareMonitor.exe"
+$OutExe = Join-Path $DistDir "ESP32HardwareMonitor.exe"
 
 & (Join-Path $PSScriptRoot "prepare-libre-hardware-monitor.ps1")
 if ($LASTEXITCODE -ne 0) {

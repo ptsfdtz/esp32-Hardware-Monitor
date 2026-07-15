@@ -8,7 +8,9 @@ using System.Reflection;
 
 internal static class TemperatureProbe
 {
-    private const string DefaultLibreDir = @"C:\Users\user\Downloads\LibreHardwareMonitor";
+    private static readonly string DefaultLibreDir = Path.Combine(
+        AppDomain.CurrentDomain.BaseDirectory,
+        "LibreHardwareMonitor");
     private static string libreDir = DefaultLibreDir;
 
     private static int Main(string[] args)
@@ -288,6 +290,7 @@ internal static class TemperatureProbe
     {
         var cpu = readings
             .Where(r => r.HardwareType.IndexOf("Cpu", StringComparison.OrdinalIgnoreCase) >= 0)
+            .Where(r => IsUsableTemperature(r.Value))
             .ToList();
 
         return PickByNames(cpu, "package", "tdie", "tctl", "core max")
@@ -298,6 +301,7 @@ internal static class TemperatureProbe
     {
         var gpu = readings
             .Where(r => IsGpuHardware(r.HardwareType, r.HardwareName))
+            .Where(r => IsUsableTemperature(r.Value))
             .ToList();
 
         if (gpu.Count == 0)
@@ -362,6 +366,14 @@ internal static class TemperatureProbe
         }
 
         return readings.Max(r => r.Value);
+    }
+
+    private static bool IsUsableTemperature(float value)
+    {
+        return !float.IsNaN(value)
+            && !float.IsInfinity(value)
+            && value > 0
+            && value < 150;
     }
 
     private static bool IsGpuHardware(string hardwareType, string hardwareName)
@@ -577,6 +589,14 @@ internal static class TemperatureProbe
             PickGpuTemperature(new List<TempReading>
             {
                 new TempReading("Cpu", "Intel Core", "CPU Package", 50)
+            }));
+
+        failures += AssertTemperature(
+            "zero cpu temperature returns empty",
+            null,
+            PickCpuTemperature(new List<TempReading>
+            {
+                new TempReading("Cpu", "AMD Ryzen", "Core (Tctl/Tdie)", 0)
             }));
 
         if (failures == 0)
