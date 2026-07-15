@@ -10,13 +10,13 @@ permissions:
   contents: write
 
 jobs:
-  build-release:
-    name: Build Windows exe
+  build:
+    name: Build Windows package
     runs-on: windows-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -27,41 +27,50 @@ jobs:
         shell: pwsh
         run: cargo fmt --check
 
-      - name: Build and publish Windows package
+      - name: Build Windows package
         shell: pwsh
+        run: .\scripts\build-monitor-setup.ps1
+
+      - name: Upload encoded release package
+        uses: actions/upload-artifact@v7
+        with:
+          name: windows-release-package-base64
+          path: dist/ESP32HardwareMonitor-windows-x64.zip.b64
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download encoded release package
+        uses: actions/download-artifact@v8
+        with:
+          name: windows-release-package-base64
+          path: encoded-package
+
+      - name: Decode and publish release
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          .\scripts\build-monitor-setup.ps1
+          set -euo pipefail
+          tag="${GITHUB_REF_NAME}"
+          safe_tag="${tag//\//-}"
+          asset_name="ESP32HardwareMonitor-${safe_tag}-windows-x64.zip"
+          checksum_name="${asset_name}.sha256"
+          mkdir -p release
+          asset_path="release/${asset_name}"
+          checksum_path="release/${checksum_name}"
+          base64 --decode encoded-package/ESP32HardwareMonitor-windows-x64.zip.b64 > "${asset_path}"
+          hash="$(sha256sum "${asset_path}" | cut -d ' ' -f1)"
+          printf '%s *%s' "${hash}" "${asset_name}" > "${checksum_path}"
 
-          if ("${{ github.ref }}" -notlike "refs/tags/*") {
-            Write-Host "Release publication skipped for ${{ github.ref }}"
-            exit 0
-          }
-
-          $tag = "${{ github.ref_name }}"
-          $safeTag = $tag -replace '[\\/:*?"<>|]', '-'
-          $assetName = "ESP32HardwareMonitor-$safeTag-windows-x64.zip"
-          $checksumName = "$assetName.sha256"
-          New-Item -ItemType Directory -Force release | Out-Null
-          $assetPath = Join-Path "release" $assetName
-          $checksumPath = Join-Path "release" $checksumName
-          $builtPackage = "dist\ESP32HardwareMonitor-windows-x64.zip"
-          if (!(Test-Path -LiteralPath $builtPackage -PathType Leaf)) {
-            Write-Output "::error title=Release package missing::$builtPackage was not created"
-            exit 1
-          }
-          Copy-Item -Force $builtPackage $assetPath
-          $sha256 = (Get-FileHash $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
-          Set-Content -LiteralPath $checksumPath -Value "$sha256 *$assetName" -NoNewline -Encoding ascii
-
-          gh release view $tag 2>$null
-          if ($LASTEXITCODE -eq 0) {
-            gh release upload $tag $assetPath $checksumPath --clobber
-          } else {
-            gh release create $tag $assetPath $checksumPath --title "ESP32 Hardware Monitor $tag" --generate-notes
-          }
-          if ($LASTEXITCODE -ne 0) {
-            Write-Output "::error title=GitHub Release failed::gh exited with code $LASTEXITCODE"
-            exit $LASTEXITCODE
-          }
+          if gh release view "${tag}" --repo "${GITHUB_REPOSITORY}" >/dev/null 2>&1; then
+            gh release upload "${tag}" "${asset_path}" "${checksum_path}" --clobber --repo "${GITHUB_REPOSITORY}"
+          else
+            gh release create "${tag}" "${asset_path}" "${checksum_path}" --title "ESP32 Hardware Monitor ${tag}" --generate-notes --repo "${GITHUB_REPOSITORY}"
+          fi
