@@ -46,7 +46,12 @@ jobs:
           New-Item -ItemType Directory -Force release | Out-Null
           $assetPath = Join-Path "release" $assetName
           $checksumPath = Join-Path "release" $checksumName
-          Compress-Archive -LiteralPath dist\ESP32HardwareMonitor.exe -DestinationPath $assetPath -Force
+          $builtPackage = "dist\ESP32HardwareMonitor-windows-x64.zip"
+          if (!(Test-Path -LiteralPath $builtPackage -PathType Leaf)) {
+            Write-Output "::error title=Release package missing::$builtPackage was not created"
+            exit 1
+          }
+          Copy-Item -Force $builtPackage $assetPath
           $sha256 = (Get-FileHash $assetPath -Algorithm SHA256).Hash.ToLowerInvariant()
           Set-Content -LiteralPath $checksumPath -Value "$sha256 *$assetName" -NoNewline -Encoding ascii
 
@@ -55,4 +60,8 @@ jobs:
             gh release upload $tag $assetPath $checksumPath --clobber
           } else {
             gh release create $tag $assetPath $checksumPath --title "ESP32 Hardware Monitor $tag" --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) {
+            Write-Output "::error title=GitHub Release failed::gh exited with code $LASTEXITCODE"
+            exit $LASTEXITCODE
           }
