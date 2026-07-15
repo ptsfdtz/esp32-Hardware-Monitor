@@ -10,7 +10,6 @@ $CargoTargetDir = if ([string]::IsNullOrWhiteSpace($env:CARGO_TARGET_DIR)) {
 $Exe = Join-Path $CargoTargetDir "release\ESP32HardwareMonitor.exe"
 $OutExe = Join-Path $DistDir "ESP32HardwareMonitor.exe"
 $OutZip = Join-Path $DistDir "ESP32HardwareMonitor-windows-x64.zip"
-$OutPartsDir = Join-Path $DistDir "release-package-parts"
 
 & (Join-Path $PSScriptRoot "prepare-libre-hardware-monitor.ps1")
 if ($LASTEXITCODE -ne 0) {
@@ -71,24 +70,7 @@ finally {
   $zipStream.Dispose()
 }
 
-$base64 = [System.Convert]::ToBase64String($zipBytes)
-New-Item -ItemType Directory -Force $OutPartsDir | Out-Null
-Get-ChildItem -LiteralPath $OutPartsDir -Filter "*.part" -File -ErrorAction SilentlyContinue |
-  Remove-Item -Force
-$chunkSize = 65536
-$partCount = 0
-for ($offset = 0; $offset -lt $base64.Length; $offset += $chunkSize) {
-  $length = [System.Math]::Min($chunkSize, $base64.Length - $offset)
-  $partPath = Join-Path $OutPartsDir ("{0:D4}.part" -f $partCount)
-  [System.IO.File]::WriteAllText(
-    $partPath,
-    $base64.Substring($offset, $length),
-    [System.Text.Encoding]::ASCII
-  )
-  $partCount++
-}
 [System.IO.File]::WriteAllBytes($OutZip, $zipBytes)
 
 Write-Host "Built $OutExe"
 Write-Host "Built $OutZip"
-Write-Host "Encoded package into $partCount parts at $OutPartsDir"
