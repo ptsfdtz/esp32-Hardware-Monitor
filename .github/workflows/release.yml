@@ -31,10 +31,6 @@ jobs:
         shell: pwsh
         run: cargo fmt --check
 
-      - name: Run temperature probe self-test
-        shell: pwsh
-        run: .\temp-probe\TemperatureProbe.exe --self-test
-
       - name: Run Rust tests
         shell: pwsh
         run: cargo test --release

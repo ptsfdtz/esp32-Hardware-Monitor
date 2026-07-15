@@ -41,5 +41,10 @@ if ($LASTEXITCODE -ne 0) {
   exit $LASTEXITCODE
 }
 
+& $OutExe --self-test
+if ($LASTEXITCODE -ne 0) {
+  exit $LASTEXITCODE
+}
+
 Write-Host "Built $OutExe"
 Write-Host "Built $ElevatedAgentExe"
